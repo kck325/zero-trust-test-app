@@ -23,9 +23,21 @@
             return fetch('https://www.cloudflare.com/cdn-cgi/trace')
                 .then(response => response.text())
                 .then(data => {
-                    const ipRegex = /ip=([0-9,.]*)/;
-                    const match = data.match(ipRegex);
-                    return match ? match[1] : 'Unable to fetch IP';
+                    const lines = data.split('\n');
+                    const ipLine = lines.find(line => line.startsWith('ip='));
+                    if (ipLine) {
+                        const ip = ipLine.split('=')[1];
+                        // Check if it's an IPv4 address
+                        if (/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
+                            return ip;
+                        }
+                        // If it's an IPv6 address, try to get an IPv4 address from a different API
+                        return fetch('https://api.ipify.org?format=json')
+                            .then(response => response.json())
+                            .then(data => data.ip)
+                            .catch(() => ip); // Fallback to the original IP if the second request fails
+                    }
+                    return 'Unable to fetch IP';
                 })
                 .catch(error => 'Error fetching IP');
         }
