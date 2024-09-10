@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zero Trust Test App</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+        h1 { color: #333; }
+        .info { background-color: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to the Zero Trust Test App</h1>
+    <div class="info">
+        <p>If you can see this page, you have successfully authenticated through Cloudflare Access.</p>
+        <p>Your IP address: <span id="ip"></span></p>
+        <p>Access JWT: <span id="jwt"></span></p>
+    </div>
+    <script>
+        fetch('/api/userinfo')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('ip').textContent = data.ip;
+                document.getElementById('jwt').textContent = data.jwt ? 'Present' : 'Not found';
+            });
+    </script>
+</body>
+</html>
