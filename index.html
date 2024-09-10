@@ -14,15 +14,35 @@
     <h1>Welcome to the Zero Trust Test App</h1>
     <div class="info">
         <p>If you can see this page, you have successfully authenticated through Cloudflare Access.</p>
-        <p>Your IP address: <span id="ip"></span></p>
-        <p>Access JWT: <span id="jwt"></span></p>
+        <p>Your IP address: <span id="ip">Loading...</span></p>
+        <p>Access JWT: <span id="jwt">Loading...</span></p>
     </div>
     <script>
-        fetch('/api/userinfo')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('ip').textContent = data.ip;
-                document.getElementById('jwt').textContent = data.jwt ? 'Present' : 'Not found';
+        // Function to get the client's IP address
+        function getClientIP() {
+            return fetch('https://www.cloudflare.com/cdn-cgi/trace')
+                .then(response => response.text())
+                .then(data => {
+                    const ipRegex = /ip=([0-9,.]*)/;
+                    const match = data.match(ipRegex);
+                    return match ? match[1] : 'Unable to fetch IP';
+                })
+                .catch(error => 'Error fetching IP');
+        }
+
+        // Function to check Access JWT
+        function checkAccessJWT() {
+            return fetch('/cdn-cgi/access/get-identity')
+                .then(response => response.json())
+                .then(data => data.email ? 'Present' : 'Not found')
+                .catch(() => 'Not found');
+        }
+
+        // Update the page with IP and JWT information
+        Promise.all([getClientIP(), checkAccessJWT()])
+            .then(([ip, jwt]) => {
+                document.getElementById('ip').textContent = ip;
+                document.getElementById('jwt').textContent = jwt;
             });
     </script>
 </body>
